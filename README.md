@@ -4,7 +4,7 @@ Ez a repozitórium a Home Assistant alapú okosotthon rendszerem teljes dokument
 
 ## 🛠️ Hardver Specifikáció
 * **SBC:** Raspberry Pi 5 (8GB RAM)
-* **Tárhely:** Geekworm X1001 Raspberry Pi 5 PCIe to M.2 NVMe SSD board (+ NVMe SSD) - Samsung QVO 870
+* **Tárhely:** Geekworm X1001 Raspberry Pi 5 PCIe to M.2 NVMe SSD board (+ NVMe SSD) - Samsung QVO 870 128GB
 * **Tápellátás/UPS:** Geekworm x1200 UPS board
 * **Ház:** Geekworm X1200-C1 Metal Case
 * **Zigbee / Z-Wave Koordinátor:** SLZB-MRW10 by SMLIGHT (Hálózati/PoE koordinátor)
