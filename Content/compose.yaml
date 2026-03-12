@@ -1,0 +1,67 @@
+version: '3.8'
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /HA/homeassistant:/config
+      - /sys/class/power_supply:/sys/class/power_supply
+      - /etc/localtime:/etc/localtime:ro
+      - /dev/serial/by-id:/dev/serial/by-id
+      - /run/dbus:/run/dbus:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    environment:
+      - TZ=Europe/Budapest
+      - PUID=1000
+      - PGID=1000
+      - UMASK=007
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    volumes:
+      - /mosquitto:/mosquitto
+      - /mosquitto/data:/mosquitto/data
+      - /mosquitto/log:/mosquitto/log
+    ports:
+      - 1883:1883
+      - 9001:9001
+    depends_on:
+      - homeassistant
+
+  zwavejs2mqtt:
+    container_name: zwavejs2mqtt
+    image: zwavejs/zwavejs2mqtt:latest
+    restart: always
+    tty: true
+    stop_signal: SIGINT
+    environment:
+      - SESSION_SECRET=<session code>
+      - ZWAVEJS_EXTERNAL_CONFIG=/usr/src/app/store/.config-db
+      - TZ=Europe/Budapest
+    #devices:
+      #- '/dev/ttyACM0:/dev/zwave'
+	  #- '/dev/serial/by-id/usb-0658_0200-if00:/dev/zwave'
+    volumes:
+      - /HA/z-wave-js/:/usr/src/app/store
+    ports:
+      - "8091:8091" # port for web interface
+      - "3000:3000" # port for Z-Wave JS websocket server
+    depends_on:
+      - mosquitto
+      - homeassistant
+
+  tunnel:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=<tunnel-token>
+    network_mode: host
+    depends_on:
+      - homeassistant
