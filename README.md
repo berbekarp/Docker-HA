@@ -10,29 +10,55 @@ Ez a repozitórium a Home Assistant alapú okosotthon rendszerem teljes dokument
 * **Zigbee / Z-Wave Koordinátor:** SLZB-MRW10 by SMLIGHT (Hálózati/PoE koordinátor)
 
 ### 🛒 Hol szerezhetőek be az eszközök?
-
 Ha te is hasonló rendszert építenél, itt találod a hivatalos és ajánlott beszerzési forrásokat:
-
 * **Raspberry Pi 5 (8GB):** [Málna PC (Hivatalos magyar forgalmazó)](https://www.malnapc.hu/) vagy [Raspberry Pi Global](https://www.raspberrypi.com/products/raspberry-pi-5/)
 * **Geekworm X1200 UPS Shield:** [Geekworm Hivatalos Webshop](https://geekworm.com/products/x1200)
 * **Geekworm X1001 NVMe SSD Shield:** [Geekworm Hivatalos Webshop](https://geekworm.com/products/x1001)
 * **Geekworm X1200-C1 Fémház:** [Geekworm Hivatalos Webshop](https://geekworm.com/products/x1200-c1) *(Kifejezetten az X1200-hoz és a Pi 5-höz tervezve)*
 * **SLZB-MRW10 Koordinátor:** [SMLIGHT Hivatalos Oldal](https://smlight.tech/) vagy hazai forgalmazótól az [Okosotthon.bolt.hu](https://okosotthon.bolt.hu/webaruhaz/termek/smlight-slzb-mrw10-multiradio-poe-adapter/)-ról.
 
-## 🐧 Operációs Rendszer
-* **OS:** Ubuntu 24.04.2 LTS (Noble Numbat) 64-bit
+---
+
+## 💾 1. Váltás SD kártyáról NVMe SSD-re és Ubuntu Telepítés
+
+A maximális sebesség és megbízhatóság érdekében a rendszert SD kártya helyett a Geekworm X1001-es kártyán lévő NVMe SSD-ről futtatjuk. Ehhez először engedélyezni kell a PCIe bootolást a Pi 5-ön.
+
+### A Boot sorrend átállítása (a régi SD kártyáról)
+Mielőtt kivennéd a régi, Raspberry Pi OS-t futtató SD kártyádat, tedd a következőket:
+1. Indítsd el a Pi-t a régi SD kártyával, és nyiss egy terminált.
+2. Lépj be a konfigurációs menübe:
+   ```bash
+   sudo raspi-config
+
+```
+
+3. Navigálj ide: **Advanced Options** -> **Boot Order**.
+4. Válaszd ki az **NVMe/USB Boot** opciót (hogy elsődlegesen az SSD-t keresse indításkor).
+5. Mentsd el és lépj ki (a gép újraindulhat). Állítsd le a rendszert, és távolítsd el az SD kártyát.
+
+### Ubuntu telepítése a Raspberry Pi Imagerrel
+
+Az OS telepítését elvégezheted egy másik számítógépen (ha van NVMe-USB adaptered), vagy magán a Raspberry Pi-n (ha az SD kártyáról indítva írod fel az SSD-re az image-t).
+
+1. Töltsd le és nyisd meg a [Raspberry Pi Imager](https://www.raspberrypi.com/software/) szoftvert.
+2. **Készülék kiválasztása:** Válaszd a *Raspberry Pi 5*-öt.
+3. **OS kiválasztása:** Menj az *Other general-purpose OS* -> *Ubuntu* menübe, és válaszd az **Ubuntu 24.04 LTS (64-bit)** verziót.
+4. **Tároló kiválasztása:** Válaszd ki az NVMe SSD-det a listából.
+5. *(Opcionális)* A fogaskerék ikonra kattintva már előre beállíthatod a Wi-Fi adatokat, a hosztnevet és az SSH hozzáférést a kényelmesebb első induláshoz.
+6. Kattints a **Write (Írás)** gombra. Ha végzett, indítsd el a Pi 5-öt az SSD-ről (SD kártya nélkül)!
 
 ---
 
-## ⚙️ 1. Ubuntu Telepítés és Hardveres Finomhangolás
+## ⚙️ 2. Ubuntu Hardveres Finomhangolás
 
-Az Ubuntu telepítése után a Geekworm kiegészítők (NVMe és UPS) maximális teljesítményéhez és megfelelő működéséhez be kell állítani a Raspberry Pi boot konfigurációját.
+Az Ubuntu sikeres SSD-s indulása után a Geekworm kiegészítők (NVMe és UPS) maximális teljesítményéhez és megfelelő működéséhez be kell állítani a Raspberry Pi boot konfigurációját.
 
 1. Nyisd meg a boot konfigurációs fájlt:
-   ```bash
-   sudo nano /boot/firmware/config.txt
+```bash
+sudo nano /boot/firmware/config.txt
 
 ```
+
 
 2. Add hozzá (vagy engedélyezd) az alábbi sorokat a fájl végén:
 ```ini
@@ -56,7 +82,7 @@ sudo reboot
 
 ---
 
-## 🐳 2. Docker és Portainer Telepítése
+## 🐳 3. Docker és Portainer Telepítése
 
 A Home Assistant és a kiegészítők futtatásához a Docker Engine és a Portainer (grafikus konténerkezelő) telepítése szükséges.
 
@@ -86,11 +112,9 @@ A Portainer webes felülete a `https://<RASPBERRY_IP>:9443` címen érhető el, 
 
 ---
 
-## 🚀 3. Konténerek Indítása (Docker Compose)
+## 🚀 4. Konténerek Indítása (Docker Compose)
 
-A rendszer összes szolgáltatását egyetlen **[`compose.yaml`](content/compose.yaml)** fájl fogja össze, amely megtalálható a repó `content/` mappájában. 
-
-*(A linkre kattintva megtekintheted a pontos konfigurációmat a portokkal, kötetekkel és környezeti változókkal!)*
+A rendszer összes szolgáltatását egyetlen **[`compose.yaml`](https://www.google.com/search?q=content/compose.yaml)** fájl fogja össze, amely megtalálható a repó `content/` mappájában.
 
 **Szolgáltatások:**
 
@@ -109,7 +133,7 @@ docker compose up -d
 
 ---
 
-## 🔐 4. Mosquitto MQTT Alapbeállítás és Jelszóadás
+## 🔐 5. Mosquitto MQTT Alapbeállítás és Jelszóadás
 
 Alapértelmezetten a Mosquitto nem enged be jelszó nélkül. Létre kell hoznunk a konfigurációs fájlt és egy felhasználót a parancssorból.
 
@@ -147,7 +171,7 @@ docker restart mosquitto
 
 ---
 
-## 📡 5. Z-Wave JS UI (zwavejs2mqtt) Részletes Beállítások
+## 📡 6. Z-Wave JS UI (zwavejs2mqtt) Részletes Beállítások
 
 A Z-Wave kezelőfelület a `http://<RASPBERRY_IP>:8091` címen érhető el. Mivel az **SLZB-MRW10** egy hálózati (PoE/LAN) koordinátor, a fizikai USB portok helyett TCP protokollon keresztül kapcsolódunk hozzá.
 
@@ -172,7 +196,7 @@ A Z-Wave kezelőfelület a `http://<RASPBERRY_IP>:8091` címen érhető el. Mive
 
 ---
 
-## 🌐 6. Cloudflare Tunnel Beállítása (Távoli Elérés)
+## 🌐 7. Cloudflare Tunnel Beállítása (Távoli Elérés)
 
 A biztonságos, portnyitás (port forwarding) nélküli távoli elérést a Cloudflare biztosítja. A `compose.yaml`-ben található `tunnel` konténerhez szükség van egy egyedi azonosítóra (Token).
 
@@ -186,4 +210,3 @@ A biztonságos, portnyitás (port forwarding) nélküli távoli elérést a Clou
 7. Ezt a tokent illeszd be a `compose.yaml` fájlodba a `TUNNEL_TOKEN=<tunnel-token>` sorhoz (a kacsacsőrök helyére).
 *(⚠️ Fontos: A tokent kezeld jelszóként! Ha a compose.yaml fájlt feltöltöd a nyilvános GitLab repódba, a tokent cseréld ki egy dummy szövegre, és csak a saját szervereden lévő fájlba írd bele az igazit!)*
 8. A Cloudflare felületén a "Public Hostnames" fülnél állítsd be a saját domainedet, a "Service" típusnál válaszd a `HTTP`-t, a cél URL pedig legyen a Home Assistant belső címe: `http://<RASPBERRY_IP>:8123`.
-
