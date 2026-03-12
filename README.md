@@ -21,29 +21,28 @@ Ha te is hasonló rendszert építenél, itt találod a hivatalos és ajánlott 
 
 ## 💾 1. Váltás SD kártyáról NVMe SSD-re és Ubuntu Telepítés
 
-A maximális sebesség és megbízhatóság érdekében a rendszert SD kártya helyett a Geekworm X1001-es kártyán lévő NVMe SSD-ről futtatjuk. Ehhez először engedélyezni kell a PCIe bootolást a Pi 5-ön.
+A maximális sebesség és megbízhatóság érdekében a rendszert SD kártya helyett a Geekworm X1001-es kártyán lévő NVMe SSD-ről fogjuk futtatni. Mivel a gépedben jelenleg bent van a régi SD kártya és az új NVMe SSD is, ezt a cserét közvetlenül a Raspberry Pi-n el tudjuk végezni.
 
-### A Boot sorrend átállítása (a régi SD kártyáról)
-Mielőtt kivennéd a régi, Raspberry Pi OS-t futtató SD kártyádat, tedd a következőket:
-1. Indítsd el a Pi-t a régi SD kártyával, és nyiss egy terminált.
+### Ubuntu telepítése a Raspberry Pi Imagerrel (az NVMe SSD-re)
+Először felírjuk az új operációs rendszert az SSD-re, miközben a régi rendszer (Raspberry Pi OS) fut az SD kártyáról.
+1. Indítsd el a Pi-t az SD kártyával, és nyisd meg a [Raspberry Pi Imager](https://www.raspberrypi.com/software/) szoftvert (ha nincs telepítve, telepítsd a terminálból: `sudo apt install rpi-imager`).
+2. **Készülék kiválasztása:** Válaszd a *Raspberry Pi 5*-öt.
+3. **OS kiválasztása:** Menj az *Other general-purpose OS* -> *Ubuntu* menübe, és válaszd az **Ubuntu 24.04 LTS (64-bit)** verziót.
+4. **Tároló kiválasztása:** Válaszd ki az **NVMe SSD-det** a listából.
+5. *(Opcionális)* A fogaskerék ikonra kattintva már előre beállíthatod a Wi-Fi adatokat, a hosztnevet és az SSH hozzáférést a kényelmesebb első induláshoz.
+6. Kattints a **Write (Írás)** gombra, és várd meg, amíg a folyamat befejeződik.
+
+### A Boot sorrend átállítása (hogy az SSD-ről induljon)
+Most, hogy az SSD-n már ott a friss Ubuntu, meg kell mondanunk a hardvernek, hogy mostantól ne az SD kártyáról próbáljon elindulni.
+1. Nyiss egy terminált a továbbra is futó Raspberry Pi OS-ben.
 2. Lépj be a konfigurációs menübe:
    ```bash
    sudo raspi-config
    ```
 3. Navigálj ide: **Advanced Options** -> **Boot Order**.
 4. Válaszd ki az **NVMe/USB Boot** opciót (hogy elsődlegesen az SSD-t keresse indításkor).
-5. Mentsd el és lépj ki (a gép újraindulhat). Állítsd le a rendszert, és távolítsd el az SD kártyát.
-
-### Ubuntu telepítése a Raspberry Pi Imagerrel
-
-Az OS telepítését elvégezheted egy másik számítógépen (ha van NVMe-USB adaptered), vagy magán a Raspberry Pi-n (ha az SD kártyáról indítva írod fel az SSD-re az image-t).
-
-1. Töltsd le és nyisd meg a [Raspberry Pi Imager](https://www.raspberrypi.com/software/) szoftvert.
-2. **Készülék kiválasztása:** Válaszd a *Raspberry Pi 5*-öt.
-3. **OS kiválasztása:** Menj az *Other general-purpose OS* -> *Ubuntu* menübe, és válaszd az **Ubuntu 24.04 LTS (64-bit)** verziót.
-4. **Tároló kiválasztása:** Válaszd ki az NVMe SSD-det a listából.
-5. *(Opcionális)* A fogaskerék ikonra kattintva már előre beállíthatod a Wi-Fi adatokat, a hosztnevet és az SSH hozzáférést a kényelmesebb első induláshoz.
-6. Kattints a **Write (Írás)** gombra. Ha végzett, indítsd el a Pi 5-öt az SSD-ről (SD kártya nélkül)!
+5. Mentsd el és lépj ki.
+6. Állítsd le teljesen a gépet (`sudo shutdown now`), **távolítsd el az SD kártyát**, majd kapcsold be újra a Pi-t. A rendszer mostantól a villámgyors NVMe SSD-ről fog elindulni!
 
 ---
 
