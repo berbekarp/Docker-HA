@@ -207,3 +207,43 @@ A biztonságos, portnyitás (port forwarding) nélküli távoli elérést a Clou
 7. Ezt a tokent illeszd be a `compose.yaml` fájlodba a `TUNNEL_TOKEN=<tunnel-token>` sorhoz (a kacsacsőrök helyére).
 *(⚠️ Fontos: A tokent kezeld jelszóként! Ha a compose.yaml fájlt feltöltöd a nyilvános GitLab repódba, a tokent cseréld ki egy dummy szövegre, és csak a saját szervereden lévő fájlba írd bele az igazit!)*
 8. A Cloudflare felületén a "Public Hostnames" fülnél állítsd be a saját domainedet, a "Service" típusnál válaszd a `HTTP`-t, a cél URL pedig legyen a Home Assistant belső címe: `http://<RASPBERRY_IP>:8123`.
+
+---
+
+## 🔄 8. Docker Konténerek Frissítése (Egyesével)
+
+A Docker Compose használatának egyik legnagyobb előnye, hogy a szolgáltatásokat (konténereket) egyesével is tudod frissíteni, így a rendszer többi része zavartalanul futhat tovább. 
+
+Ha például csak a Home Assistantot vagy a Z-Wave JS-t szeretnéd a legújabb verzióra frissíteni, kövesd az alábbi lépéseket:
+
+**1. Lépj be abba a mappába, ahol a `compose.yaml` fájlod található:**
+```bash
+cd /eleresi/utvonal/a/compose/fajlhoz
+
+```
+
+**2. Töltsd le a legújabb frissítést (Image pull):**
+Add ki a `pull` parancsot, mögé írva a frissíteni kívánt szolgáltatás pontos nevét (ahogy a compose fájlban szerepel, pl. `homeassistant`, `zwavejs2mqtt`, `mosquitto` vagy `tunnel`). Ez csak letölti a frissítést, de még nem állítja le a futó rendszert.
+
+```bash
+docker compose pull homeassistant
+
+```
+
+**3. Indítsd újra a konténert az új verzióval:**
+Az alábbi parancs leállítja a régi konténert, törli, és azonnal létrehozza az újat a frissített fájlokkal, megtartva az összes beállításodat.
+
+```bash
+docker compose up -d homeassistant
+
+```
+
+**4. (Opcionális) Takarítsd ki a feleslegessé vált régi fájlokat:**
+Minden frissítés után a régi, már nem használt image-ek (telepítőfájlok) a tárhelyen maradnak. Helyfelszabadítás céljából érdemes ezeket törölni:
+
+```bash
+docker image prune -f
+
+```
+
+*(A `-f` kapcsoló miatt nem fog rákérdezni a törlésre, hanem automatikusan eltávolítja a már nem használt image-eket).*
