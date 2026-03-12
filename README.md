@@ -4,10 +4,20 @@ Ez a repozitórium a Home Assistant alapú okosotthon rendszerem teljes dokument
 
 ## 🛠️ Hardver Specifikáció
 * **SBC:** Raspberry Pi 5 (8GB RAM)
-* **Tárhely:** Geekworm X1001 Raspberry Pi 5 PCIe to M.2 NVMe SSD board (+ NVMe SSD)
+* **Tárhely:** Geekworm X1001 Raspberry Pi 5 PCIe to M.2 NVMe SSD board (+ NVMe SSD) - Samsung QVO 870
 * **Tápellátás/UPS:** Geekworm x1200 UPS board
 * **Ház:** Geekworm X1200-C1 Metal Case
 * **Zigbee / Z-Wave Koordinátor:** SLZB-MRW10 by SMLIGHT (Hálózati/PoE koordinátor)
+
+### 🛒 Hol szerezhetőek be az eszközök?
+
+Ha te is hasonló rendszert építenél, itt találod a hivatalos és ajánlott beszerzési forrásokat:
+
+* **Raspberry Pi 5 (8GB):** [Málna PC (Hivatalos magyar forgalmazó)](https://www.malnapc.hu/) vagy [Raspberry Pi Global](https://www.raspberrypi.com/products/raspberry-pi-5/)
+* **Geekworm X1200 UPS Shield:** [Geekworm Hivatalos Webshop](https://geekworm.com/products/x1200)
+* **Geekworm X1001 NVMe SSD Shield:** [Geekworm Hivatalos Webshop](https://geekworm.com/products/x1001)
+* **Geekworm X1200-C1 Fémház:** [Geekworm Hivatalos Webshop](https://geekworm.com/products/x1200-c1) *(Kifejezetten az X1200-hoz és a Pi 5-höz tervezve)*
+* **SLZB-MRW10 Koordinátor:** [SMLIGHT Hivatalos Oldal](https://smlight.tech/) vagy hazai forgalmazótól az [Okosotthon.bolt.hu](https://okosotthon.bolt.hu/webaruhaz/termek/smlight-slzb-mrw10-multiradio-poe-adapter/)-ról.
 
 ## 🐧 Operációs Rendszer
 * **OS:** Ubuntu 24.04.2 LTS (Noble Numbat) 64-bit
@@ -78,7 +88,9 @@ A Portainer webes felülete a `https://<RASPBERRY_IP>:9443` címen érhető el, 
 
 ## 🚀 3. Konténerek Indítása (Docker Compose)
 
-A rendszer összes szolgáltatását egyetlen `compose.yaml` fájl fogja össze, amely megtalálható a repó `content/` mappájában.
+A rendszer összes szolgáltatását egyetlen **[`compose.yaml`](content/compose.yaml)** fájl fogja össze, amely megtalálható a repó `content/` mappájában. 
+
+*(A linkre kattintva megtekintheted a pontos konfigurációmat a portokkal, kötetekkel és környezeti változókkal!)*
 
 **Szolgáltatások:**
 
@@ -135,21 +147,43 @@ docker restart mosquitto
 
 ---
 
-## 📡 5. Z-Wave JS UI (zwavejs2mqtt) Alapbeállítások
+## 📡 5. Z-Wave JS UI (zwavejs2mqtt) Részletes Beállítások
 
-A Z-Wave kezelőfelület a `http://<RASPBERRY_IP>:8091` címen érhető el. Mivel a `compose.yaml`-ben a fizikai USB portok ki vannak kommentelve, a Z-Wave hálózat az **SLZB-MRW10** eszközön keresztül, IP alapon kommunikál.
+A Z-Wave kezelőfelület a `http://<RASPBERRY_IP>:8091` címen érhető el. Mivel az **SLZB-MRW10** egy hálózati (PoE/LAN) koordinátor, a fizikai USB portok helyett TCP protokollon keresztül kapcsolódunk hozzá.
 
-1. Lépj be a webes felületre, és menj a **Settings (Beállítások)** menübe.
-2. **Z-Wave szekció:** * A *Serial Port* résznél válaszd a TCP/IP csatlakozást.
-* Formátum: `tcp://<SLZB_MRW10_IP_CIME>:<PORT>` (A port általában a hálózati koordinátor webes felületén van megadva).
+1. Lépj be a webes felületre, és menj a **Settings (Beállítások) -> Z-Wave** menüpontba.
+2. **Soros port (Serial Port):** * Válaszd ki a TCP csatlakozást.
+* Cím (Port): Írd be az SLZB-MRW10 IP címét és portját a következő formátumban: `tcp://<SLZB_MRW10_IP_CIME>:6638` (a 6638 a SMLIGHT eszközök alapértelmezett Z-Wave portja, ellenőrizd az eszköz webes felületén).
 
 
-3. **MQTT szekció:**
-* Host: `mosquitto` (vagy a szerver IP címe)
+3. **Biztonsági Kulcsok (Security Keys):**
+* A modern Z-Wave eszközök biztonságos (S2) kommunikációjához kulcsokra van szükség.
+* Ugyanitt a beállításokban keresd meg a kulcsokat (S0 Legacy, S2 Access Control, S2 Authenticated, S2 Unauthenticated).
+* Ha még üresek, kattints az ikonra a **generáláshoz (Generate)**. *Ezeket a kulcsokat mentsd el egy biztonságos helyre, mert ha elvesznek, újra kell párosítani az összes S2-es eszközt!*
+
+
+4. **MQTT szekció:**
+* Host: `mosquitto` (mivel egy docker hálózaton vannak, elég a konténer nevét megadni)
 * Port: `1883`
-* Hitelesítés: Add meg az előző lépésben létrehozott MQTT felhasználónevet és jelszót.
+* Auth: Kapcsold be, és add meg az előző lépésben létrehozott MQTT felhasználónevet és jelszót.
 
 
-4. Mentsd el, majd engedélyezd a Z-Wave JS integrációt a Home Assistantban is (a `ws://<RASPBERRY_IP>:3000` címet használva).
+5. Mentsd el a beállításokat. A Home Assistantban a Z-Wave integráció hozzáadásakor a `ws://<RASPBERRY_IP>:3000` címet kell majd megadni.
 
-```
+---
+
+## 🌐 6. Cloudflare Tunnel Beállítása (Távoli Elérés)
+
+A biztonságos, portnyitás (port forwarding) nélküli távoli elérést a Cloudflare biztosítja. A `compose.yaml`-ben található `tunnel` konténerhez szükség van egy egyedi azonosítóra (Token).
+
+1. Lépj be a [Cloudflare Zero Trust](https://one.dash.cloudflare.com/) felületére.
+2. Navigálj a **Networks -> Tunnels** menüpontba.
+3. Kattints a **Create a tunnel** gombra, majd válaszd a **Cloudflared** opciót.
+4. Adj nevet a tunnelnek (pl. `HomeAssistant-Pi5`).
+5. A megjelenő telepítési opcióknál válaszd a **Docker** környezetet. Itt látni fogsz egy hosszú parancsot, amiben szerepel a token:
+`--token eyJhbGciOiJIUzI1NiIsInR...`
+6. **Csak a token kódsorát másold ki!**
+7. Ezt a tokent illeszd be a `compose.yaml` fájlodba a `TUNNEL_TOKEN=<tunnel-token>` sorhoz (a kacsacsőrök helyére).
+*(⚠️ Fontos: A tokent kezeld jelszóként! Ha a compose.yaml fájlt feltöltöd a nyilvános GitLab repódba, a tokent cseréld ki egy dummy szövegre, és csak a saját szervereden lévő fájlba írd bele az igazit!)*
+8. A Cloudflare felületén a "Public Hostnames" fülnél állítsd be a saját domainedet, a "Service" típusnál válaszd a `HTTP`-t, a cél URL pedig legyen a Home Assistant belső címe: `http://<RASPBERRY_IP>:8123`.
+
