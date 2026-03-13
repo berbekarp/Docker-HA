@@ -75,8 +75,6 @@ sudo reboot
 
 ```
 
-
-
 ---
 
 ## 🐳 3. Docker és Portainer Telepítése
