@@ -245,3 +245,13 @@ docker image prune -f
 ```
 
 *(A `-f` kapcsoló miatt nem fog rákérdezni a törlésre, hanem automatikusan eltávolítja a már nem használt image-eket).*
+
+---
+
+## ☕ Támogatás (Support)
+
+Ha hasznosnak találod ezeket a Home Assistant kártyákat és dashboardokat, és szeretnéd megköszönni a fejlesztésükbe és dokumentálásukba fektetett időt, egy virtuális kávéval megteheted! Bármilyen apró támogatást hatalmas köszönettel fogadok. 🙏
+
+[![Revolut](https://img.shields.io/badge/Revolut-Support-black?style=for-the-badge&logo=revolut)](https://revolut.me/berbekarp)
+
+**Revolut azonosító:** `@berbekarp`
